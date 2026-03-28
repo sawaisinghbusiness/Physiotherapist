@@ -121,13 +121,12 @@
   /* ── HERO ── */
   .hero {
     min-height: 100vh; display: flex; align-items: center;
-    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1600&q=80') center center / cover no-repeat;
+    background: linear-gradient(135deg, #0f2156 0%, var(--dark-blue) 40%, #2a5298 70%, var(--light-blue) 100%);
     position: relative; overflow: hidden; padding-top: 72px;
   }
   .hero::before {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(10,25,80,0.82) 0%, rgba(15,33,86,0.78) 50%, rgba(20,60,130,0.65) 100%);
-    z-index: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
   .hero-blob {
     position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.12;
@@ -144,10 +143,9 @@
   .hero-content { animation: fadeInUp 0.9s ease forwards; }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50px; padding: 6px 16px; margin-bottom: 28px;
-    backdrop-filter: blur(6px);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    backdrop-filter: blur(8px);
   }
   .hero-badge i { color: var(--light-blue); font-size: 0.75rem; }
   .hero-badge span { color: rgba(255,255,255,0.9); font-size: 0.8rem; font-weight: 500; font-family: 'Poppins', sans-serif; }
@@ -193,9 +191,9 @@
     position: relative;
   }
   .hero-image-card {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 24px; padding: 8px; backdrop-filter: blur(5px);
-    box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px; padding: 8px; backdrop-filter: blur(8px);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
   }
   .hero-image-inner {
     border-radius: 18px; overflow: hidden; height: 460px;
@@ -1037,8 +1035,7 @@
   // ── SOUND ENGINE — Auto on first user interaction ──
   let audioCtx = null;
   let soundReady = false;
-  let ambientOscillators = [];
-  let ambientGainNode = null;
+
 
   function getCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1085,32 +1082,10 @@
     } catch(e) {}
   }
 
-  // Ambient drone — very soft warm background tone
-  function startAmbient() {
-    if (ambientGainNode) return;
-    try {
-      const ctx = getCtx();
-      ambientGainNode = ctx.createGain();
-      ambientGainNode.gain.setValueAtTime(0, ctx.currentTime);
-      ambientGainNode.gain.linearRampToValueAtTime(0.018, ctx.currentTime + 3);
-      ambientGainNode.connect(ctx.destination);
-      [174.6, 175.2, 261.6].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        g.gain.value = i === 2 ? 0.2 : 0.4;
-        osc.connect(g); g.connect(ambientGainNode);
-        osc.start();
-        ambientOscillators.push(osc);
-      });
-    } catch(e) {}
-  }
-
   // Auto-activate sound on first user interaction
   function activateSound() {
     if (soundReady) return;
     soundReady = true;
-    startAmbient();
     document.removeEventListener('click', activateSound);
     document.removeEventListener('touchstart', activateSound);
   }
