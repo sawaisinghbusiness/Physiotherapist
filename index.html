@@ -121,12 +121,13 @@
   /* ── HERO ── */
   .hero {
     min-height: 100vh; display: flex; align-items: center;
-    background: linear-gradient(135deg, #0f2156 0%, var(--dark-blue) 40%, #2a5298 70%, var(--light-blue) 100%);
+    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1600&q=80') center center / cover no-repeat;
     position: relative; overflow: hidden; padding-top: 72px;
   }
   .hero::before {
     content: ''; position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: linear-gradient(135deg, rgba(10,25,80,0.82) 0%, rgba(15,33,86,0.78) 50%, rgba(20,60,130,0.65) 100%);
+    z-index: 0;
   }
   .hero-blob {
     position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.12;
@@ -525,7 +526,7 @@
 <nav id="navbar">
   <div class="nav-inner">
     <a href="#" class="logo">
-      <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+      <div class="logo-icon"><i class="fas fa-plus"></i></div>
       Platinum <span>Physio</span>
     </a>
     <ul class="nav-links">
@@ -922,21 +923,21 @@
       <div class="booking-form fade-in" id="bookingForm">
         <div class="form-row">
           <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" placeholder="Your full name">
+            <label>Full Name <span style="color:#e05555">*</span></label>
+            <input type="text" id="fieldName" placeholder="Your full name" required>
           </div>
           <div class="form-group">
-            <label>Phone</label>
-            <input type="tel" placeholder="Your phone number">
+            <label>Phone <span style="color:#e05555">*</span></label>
+            <input type="tel" id="fieldPhone" placeholder="Your phone number" required>
           </div>
         </div>
         <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" placeholder="your@email.com">
+          <label>Email Address <span style="color:#e05555">*</span></label>
+          <input type="email" id="fieldEmail" placeholder="your@email.com" required>
         </div>
         <div class="form-group">
-          <label>What Do You Need Help With?</label>
-          <select>
+          <label>What Do You Need Help With? <span style="color:#e05555">*</span></label>
+          <select id="fieldService" required>
             <option value="" disabled selected>Select a service</option>
             <option>Physiotherapy</option>
             <option>Injury Rehabilitation</option>
@@ -950,12 +951,15 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Preferred Date</label>
-          <input type="date">
+          <label>Preferred Date <span style="color:#e05555">*</span></label>
+          <input type="date" id="fieldDate" required>
         </div>
         <div class="form-group">
           <label>Additional Message</label>
           <textarea rows="3" placeholder="Tell us a little more about your situation (optional)"></textarea>
+        </div>
+        <div id="formError" style="display:none; background:#fff0f0; border:1.5px solid #e05555; border-radius:8px; padding:12px 16px; margin-bottom:16px; color:#c0392b; font-size:0.88rem; font-family:'Poppins',sans-serif;">
+          <i class="fas fa-circle-exclamation" style="margin-right:6px;"></i><span id="formErrorText"></span>
         </div>
         <button class="btn-submit" onclick="handleSubmit(event)">
           <i class="fas fa-calendar-check"></i> Book Appointment
@@ -966,6 +970,11 @@
         <i class="fas fa-circle-check"></i>
         <h3>Booking Request Received!</h3>
         <p>Thank you! We will contact you within 24 hours to confirm your appointment details.</p>
+        <button onclick="resetForm()" style="margin-top:24px; padding:12px 28px; border:2px solid #2d9960; border-radius:10px; background:transparent; color:#1a5e3a; font-family:'Poppins',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.25s ease; display:inline-flex; align-items:center; gap:8px;"
+          onmouseover="this.style.background='#2d9960';this.style.color='#fff';"
+          onmouseout="this.style.background='transparent';this.style.color='#1a5e3a';">
+          <i class="fas fa-rotate-left"></i> Fill Form Again
+        </button>
       </div>
     </div>
   </div>
@@ -977,7 +986,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="#" class="logo">
-          <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+          <div class="logo-icon"><i class="fas fa-plus"></i></div>
           Platinum <span>Physio</span>
         </a>
         <p>Premium physiotherapy and rehabilitation services designed to help you recover faster, move better, and perform at your best.</p>
@@ -1178,12 +1187,38 @@
 
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-  // ── FORM SUBMIT ──
+  // ── FORM VALIDATION & SUBMIT ──
+  function showError(msg) {
+    const errBox = document.getElementById('formError');
+    const errText = document.getElementById('formErrorText');
+    errText.textContent = msg;
+    errBox.style.display = 'block';
+    errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => { errBox.style.display = 'none'; }, 4000);
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    // Chime + strong haptic on form success
+
+    const name    = document.getElementById('fieldName').value.trim();
+    const phone   = document.getElementById('fieldPhone').value.trim();
+    const email   = document.getElementById('fieldEmail').value.trim();
+    const service = document.getElementById('fieldService').value;
+    const date    = document.getElementById('fieldDate').value;
+
+    // Validation checks
+    if (!name)              return showError('Please enter your full name.');
+    if (!phone)             return showError('Please enter your phone number.');
+    if (!/^\+?[\d\s\-()]{7,}$/.test(phone)) return showError('Please enter a valid phone number.');
+    if (!email)             return showError('Please enter your email address.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address.');
+    if (!service)           return showError('Please select a service.');
+    if (!date)              return showError('Please select a preferred date.');
+
+    // All good — play chime + haptic + show success
     playChime();
     vibrate([10, 40, 10, 40, 20]);
+
     const form = document.getElementById('bookingForm');
     const success = document.getElementById('successMsg');
     form.style.opacity = '0';
@@ -1194,6 +1229,33 @@
       success.style.display = 'block';
       setTimeout(() => { success.classList.add('visible'); }, 50);
     }, 400);
+  }
+
+  // ── RESET FORM ──
+  function resetForm() {
+    const form = document.getElementById('bookingForm');
+    const success = document.getElementById('successMsg');
+
+    // Clear all fields
+    document.getElementById('fieldName').value = '';
+    document.getElementById('fieldPhone').value = '';
+    document.getElementById('fieldEmail').value = '';
+    document.getElementById('fieldService').value = '';
+    document.getElementById('fieldDate').value = '';
+    document.querySelector('#bookingForm textarea').value = '';
+    document.getElementById('formError').style.display = 'none';
+
+    // Hide success, show form
+    success.classList.remove('visible');
+    success.style.display = 'none';
+    form.style.display = 'block';
+    form.style.opacity = '0';
+    form.style.transform = 'scale(0.97)';
+    form.style.transition = 'all 0.4s ease';
+    setTimeout(() => {
+      form.style.opacity = '1';
+      form.style.transform = 'scale(1)';
+    }, 50);
   }
 
   // Close mobile menu on scroll
