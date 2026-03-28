@@ -89,6 +89,20 @@
   }
   .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,163,209,0.4); }
 
+  /* sound toggle */
+  .sound-toggle {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--very-light-blue); border: 1.5px solid rgba(31,60,136,0.12);
+    border-radius: 8px; padding: 7px 12px; cursor: pointer;
+    font-family: 'Poppins', sans-serif; font-size: 0.76rem; font-weight: 600;
+    color: var(--dark-blue); transition: all var(--transition); white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sound-toggle:hover { background: #d6eaf8; border-color: var(--light-blue); }
+  .sound-toggle i { font-size: 0.8rem; }
+  .sound-toggle.sound-on { background: var(--dark-blue); color: #fff; border-color: var(--dark-blue); }
+  .sound-toggle.sound-on:hover { background: #162e6e; }
+
   /* hamburger */
   .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; background: none; border: none; }
   .hamburger span {
@@ -524,6 +538,7 @@
       <li><a href="#team">About</a></li>
       <li><a href="#booking">Contact</a></li>
     </ul>
+    <button class="sound-toggle" id="soundToggle" title="Toggle Sound"><i class="fas fa-volume-xmark"></i><span>Sound Off</span></button>
     <a href="#booking" class="btn-nav"><i class="fas fa-calendar-check"></i> Book Appointment</a>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -896,7 +911,7 @@
             <div class="ci-icon"><i class="fas fa-envelope"></i></div>
             <div class="ci-text">
               <strong>Email</strong>
-              <span>hello@platinumphysio.com</span>
+              <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85ede0e9e9eac5f5e9e4f1ecebf0e8f5edfcf6eceaabe6eae8">[email&#160;protected]</a></span>
             </div>
           </div>
           <div class="contact-item">
@@ -1015,7 +1030,7 @@
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-envelope"></i>
-          <span>hello@platinumphysio.com</span>
+          <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="751d1019191a35051914011c1b0018051d0c061c1a5b161a18">[email&#160;protected]</a></span>
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-clock"></i>
@@ -1031,13 +1046,127 @@
 </footer>
 
 <script>
-  // Navbar scroll shadow
+  // ── SOUND ENGINE (Web Audio API — no external files) ──
+  let audioCtx = null;
+  let soundEnabled = false;
+  let ambientOscillators = [];
+  let ambientGainNode = null;
+
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // 1. Soft click — gentle sine blip, very low volume
+  function playClick() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.13);
+    } catch(e) {}
+  }
+
+  // 2. Soft success — warm 3-note ascending chime
+  function playSuccess() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getCtx();
+      [[523.25, 0], [659.25, 0.18], [783.99, 0.36]].forEach(([freq, delay]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const t = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.06, t + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+        osc.start(t);
+        osc.stop(t + 0.52);
+      });
+    } catch(e) {}
+  }
+
+  // 3. Ambient — very soft warm drone, fades in slowly
+  function startAmbient() {
+    if (ambientGainNode) return;
+    try {
+      const ctx = getCtx();
+      ambientGainNode = ctx.createGain();
+      ambientGainNode.gain.setValueAtTime(0, ctx.currentTime);
+      ambientGainNode.gain.linearRampToValueAtTime(0.018, ctx.currentTime + 3);
+      ambientGainNode.connect(ctx.destination);
+
+      // Two slightly detuned sine waves for warmth
+      [174.6, 175.2, 261.6].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        g.gain.value = i === 2 ? 0.2 : 0.4;
+        osc.connect(g);
+        g.connect(ambientGainNode);
+        osc.start();
+        ambientOscillators.push(osc);
+      });
+    } catch(e) {}
+  }
+
+  function stopAmbient() {
+    if (!ambientGainNode) return;
+    try {
+      const ctx = getCtx();
+      ambientGainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+      setTimeout(() => {
+        ambientOscillators.forEach(o => { try { o.stop(); } catch(e){} });
+        ambientOscillators = [];
+        ambientGainNode = null;
+      }, 2000);
+    } catch(e) {}
+  }
+
+  // ── SOUND TOGGLE BUTTON ──
+  const soundBtn = document.getElementById('soundToggle');
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.classList.toggle('sound-on', soundEnabled);
+    soundBtn.querySelector('i').className = soundEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark';
+    soundBtn.querySelector('span').textContent = soundEnabled ? 'Sound On' : 'Sound Off';
+    if (soundEnabled) {
+      startAmbient();
+      playClick();
+    } else {
+      stopAmbient();
+    }
+  });
+
+  // Attach click sound to all buttons and nav links
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('button, a');
+    if (!el || el.id === 'soundToggle') return;
+    playClick();
+  });
+
+  // ── NAVBAR SCROLL ──
   const navbar = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
     navbar.classList.toggle('scrolled', window.scrollY > 10);
   });
 
-  // Hamburger menu
+  // ── HAMBURGER MENU ──
   const hamburger = document.getElementById('hamburger');
   const mobileMenu = document.getElementById('mobileMenu');
   let menuOpen = false;
@@ -1054,7 +1183,7 @@
     mobileMenu.classList.remove('open');
   }
 
-  // Scroll fade-in
+  // ── SCROLL FADE-IN ──
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('visible'); }
@@ -1063,13 +1192,15 @@
 
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-  // Form submit
+  // ── FORM SUBMIT ──
   function handleSubmit(e) {
     e.preventDefault();
+    playSuccess();
     const form = document.getElementById('bookingForm');
     const success = document.getElementById('successMsg');
     form.style.opacity = '0';
     form.style.transform = 'scale(0.97)';
+    form.style.transition = 'all 0.4s ease';
     setTimeout(() => {
       form.style.display = 'none';
       success.style.display = 'block';
@@ -1077,7 +1208,7 @@
     }, 400);
   }
 
-  // Close mobile menu when scrolling
+  // Close mobile menu on scroll
   window.addEventListener('scroll', () => {
     if (menuOpen) closeMenu();
   }, { passive: true });
