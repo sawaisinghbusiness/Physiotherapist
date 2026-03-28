@@ -1055,27 +1055,41 @@
     return audioCtx;
   }
 
-  // Soft whoosh — nav links & big CTA buttons
-  function playWhoosh() {
+  // ── SOFT UI CLICK SOUND ──
+  // Short, minimal, modern — like iOS / Material You tap
+  function playSoftClick() {
     try {
       const ctx = getCtx();
-      const bufferSize = ctx.sampleRate * 0.18;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(1200, ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.18);
-      filter.Q.value = 0.8;
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-      source.start(); source.stop(ctx.currentTime + 0.2);
+      const t = ctx.currentTime;
+
+      // Layer 1: Very short sine tone — the "body" of the click
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1100, t);
+      osc.frequency.exponentialRampToValueAtTime(420, t + 0.045);
+      oscGain.gain.setValueAtTime(0, t);
+      oscGain.gain.linearRampToValueAtTime(0.07, t + 0.005);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+      osc.connect(oscGain); oscGain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.06);
+
+      // Layer 2: Tiny transient noise burst — the "attack" snap
+      const bufSize = Math.floor(ctx.sampleRate * 0.018);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i/bufSize, 3);
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.value = 3000;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.04, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
+      noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ctx.destination);
+      noise.start(t); noise.stop(t + 0.02);
+
     } catch(e) {}
   }
 
@@ -1128,7 +1142,7 @@
 
     // 3. Whoosh only on nav links & CTA buttons (not every tiny link)
     if (isBigAction || el.closest('.nav-links, .mobile-menu')) {
-      playWhoosh();
+      playSoftClick();
     }
   }, { passive: true });
 
