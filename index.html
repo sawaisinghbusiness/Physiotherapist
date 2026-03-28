@@ -373,25 +373,77 @@
   .team-info p { font-size: 0.83rem; color: #777; line-height: 1.6; }
 
   /* ── TESTIMONIALS ── */
-  #testimonials { background: var(--light-grey); }
-  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-  .testimonial-card {
-    background: #fff; border-radius: var(--radius); padding: 32px 28px;
-    box-shadow: var(--shadow-soft); transition: all var(--transition); position: relative;
+  #testimonials {
+    background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 40%, #0e6e6e 100%);
+    position: relative; overflow: hidden;
   }
-  .testimonial-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
-  .quote-icon { font-size: 2.5rem; color: var(--very-light-blue); line-height: 1; margin-bottom: 16px; font-family: Georgia, serif; }
-  .testimonial-card p { font-size: 0.92rem; color: #555; line-height: 1.75; margin-bottom: 24px; font-style: italic; }
+  #testimonials::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(100,220,210,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.07) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  /* floating glass squares — decorative */
+  #testimonials::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+    border-radius: 24px;
+  }
+
+  .testimonials-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
+    position: relative; z-index: 1;
+  }
+  .testimonial-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: var(--radius); padding: 28px 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+    transition: all var(--transition); position: relative; overflow: hidden;
+  }
+  .testimonial-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  }
+  .testimonial-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.35); }
+
+  /* stars animation */
+  .stars { display: flex; gap: 4px; margin-bottom: 16px; }
+  .stars i {
+    color: #f5a623; font-size: 1rem;
+    opacity: 0; transform: scale(0) rotate(-30deg);
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .stars.animated i:nth-child(1) { opacity:1; transform:scale(1) rotate(0); transition-delay:0s; }
+  .stars.animated i:nth-child(2) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.12s; }
+  .stars.animated i:nth-child(3) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.24s; }
+  .stars.animated i:nth-child(4) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.36s; }
+  .stars.animated i:nth-child(5) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.48s; }
+
+  .quote-icon { font-size: 2.5rem; color: rgba(100,220,210,0.4); line-height: 1; margin-bottom: 12px; font-family: Georgia, serif; }
+
+  /* typewriter text */
+  .testimonial-card p {
+    font-size: 0.92rem; color: rgba(255,255,255,0.88); line-height: 1.75;
+    margin-bottom: 24px; font-style: italic; min-height: 120px;
+  }
+
+  /* author */
   .testimonial-author { display: flex; align-items: center; gap: 14px; }
   .author-avatar {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--dark-blue), var(--light-blue));
-    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.3);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(79,163,209,0.6), rgba(31,60,136,0.6));
+    backdrop-filter: blur(4px); font-size: 1.3rem; color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
-  .author-avatar i { color: #fff; font-size: 1rem; }
-  .author-info strong { display: block; font-size: 0.88rem; color: var(--dark-blue); font-family: 'Poppins', sans-serif; font-weight: 700; }
-  .author-info span { font-size: 0.78rem; color: #999; }
-  .stars { color: #f5a623; font-size: 0.8rem; margin-bottom: 14px; }
+  .author-info strong { display: block; font-size: 0.9rem; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; }
+  .author-info span { font-size: 0.78rem; color: rgba(100,220,210,0.85); }
 
   /* ── CTA ── */
   #cta {
@@ -830,11 +882,14 @@
     </div>
     <div class="testimonials-grid">
       <div class="testimonial-card fade-in">
-        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <div class="stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          <i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
         <div class="quote-icon">"</div>
-        <p>The team at Platinum Physio helped me recover from my knee injury and get back to playing football. The rehabilitation program was structured and progressive — exactly what I needed.</p>
+        <p class="typewriter-text" data-text="The team at Platinum Physio helped me recover from my knee injury and get back to playing football. The rehabilitation program was structured and progressive — exactly what I needed."></p>
         <div class="testimonial-author">
-          <div class="author-avatar"><i class="fas fa-user"></i></div>
+          <div class="author-avatar">🏃</div>
           <div class="author-info">
             <strong>Daniel Harrington</strong>
             <span>ACL Rehabilitation</span>
@@ -842,23 +897,14 @@
         </div>
       </div>
       <div class="testimonial-card fade-in">
-        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-        <div class="quote-icon">"</div>
-        <p>Very professional and knowledgeable team. I came in with severe back pain and after a course of treatment and Pilates, I am completely pain-free. I cannot recommend them highly enough.</p>
-        <div class="testimonial-author">
-          <div class="author-avatar"><i class="fas fa-user"></i></div>
-          <div class="author-info">
-            <strong>Patricia O'Brien</strong>
-            <span>Back Pain Treatment</span>
-          </div>
+        <div class="stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          <i class="fas fa-star"></i><i class="fas fa-star"></i>
         </div>
-      </div>
-      <div class="testimonial-card fade-in">
-        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
         <div class="quote-icon">"</div>
-        <p>The Clinical Pilates and strength program completely changed how I move. My posture has improved, my back pain is gone, and I feel stronger than I ever have. Genuinely life-changing.</p>
+        <p class="typewriter-text" data-text="The Clinical Pilates and strength program completely changed how I move. My posture has improved, my back pain is gone, and I feel stronger than I ever have. Genuinely life-changing."></p>
         <div class="testimonial-author">
-          <div class="author-avatar"><i class="fas fa-user"></i></div>
+          <div class="author-avatar">🧘</div>
           <div class="author-info">
             <strong>Rachel Chen</strong>
             <span>Pilates & Strength Program</span>
@@ -866,11 +912,14 @@
         </div>
       </div>
       <div class="testimonial-card fade-in">
-        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <div class="stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          <i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
         <div class="quote-icon">"</div>
-        <p>After my shoulder surgery, I was nervous about recovery. The team gave me a clear plan and guided me every step of the way. I'm now back at full strength, ahead of schedule.</p>
+        <p class="typewriter-text" data-text="After my shoulder surgery, I was nervous about recovery. The team gave me a clear plan and guided me every step of the way. I'm now back at full strength, ahead of schedule."></p>
         <div class="testimonial-author">
-          <div class="author-avatar"><i class="fas fa-user"></i></div>
+          <div class="author-avatar">💪</div>
           <div class="author-info">
             <strong>Tom Gallagher</strong>
             <span>Post-Surgery Rehabilitation</span>
@@ -1236,6 +1285,70 @@
 
   const helpStats = document.querySelector('.help-stats');
   if (helpStats) counterObserver.observe(helpStats);
+
+  // ── TESTIMONIAL ANIMATIONS: Stars + Typewriter ──
+  const activeTypers = new Map();
+
+  function animateStars(card) {
+    const stars = card.querySelector('.stars');
+    if (stars) {
+      stars.classList.remove('animated');
+      void stars.offsetWidth; // force reflow
+      setTimeout(() => stars.classList.add('animated'), 100);
+    }
+  }
+
+  function typewriterText(el) {
+    // Stop any existing typer on this element
+    if (activeTypers.has(el)) {
+      clearTimeout(activeTypers.get(el));
+      activeTypers.delete(el);
+    }
+    const text = el.dataset.text || '';
+    el.textContent = '';
+    let i = 0;
+    const speed = 22; // ms per character
+
+    function type() {
+      if (i < text.length) {
+        el.textContent += text[i];
+        i++;
+        const t = setTimeout(type, speed);
+        activeTypers.set(el, t);
+      } else {
+        activeTypers.delete(el);
+      }
+    }
+    type();
+  }
+
+  // Observe each testimonial card individually
+  const testimonialObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const card = entry.target;
+      if (entry.isIntersecting) {
+        animateStars(card);
+        const textEl = card.querySelector('.typewriter-text');
+        if (textEl) typewriterText(textEl);
+      } else {
+        // Reset when card leaves viewport so it re-animates on return
+        const stars = card.querySelector('.stars');
+        if (stars) stars.classList.remove('animated');
+        const textEl = card.querySelector('.typewriter-text');
+        if (textEl) {
+          if (activeTypers.has(textEl)) {
+            clearTimeout(activeTypers.get(textEl));
+            activeTypers.delete(textEl);
+          }
+          textEl.textContent = '';
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.testimonial-card').forEach(card => {
+    testimonialObserver.observe(card);
+  });
 
   // ── FORM VALIDATION & SUBMIT ──
   function showError(msg) {
