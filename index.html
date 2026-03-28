@@ -374,22 +374,43 @@
 
   /* ── TESTIMONIALS ── */
   #testimonials {
-    background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 40%, #0e6e6e 100%);
+    background:
+      linear-gradient(160deg, #0a1628 0%, #0f2347 35%, #1a3a6b 65%, #1F3C88 100%);
     position: relative; overflow: hidden;
   }
+  /* Layered glow blobs */
   #testimonials::before {
-    content: ''; position: absolute; inset: 0;
+    content: ''; position: absolute; inset: 0; pointer-events: none;
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(100,220,210,0.18) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.07) 0%, transparent 50%);
-    pointer-events: none;
+      radial-gradient(ellipse 70% 60% at 10% 80%, rgba(79,163,209,0.22) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 90% 10%, rgba(255,255,255,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 50% at 55% 50%, rgba(31,60,136,0.30) 0%, transparent 70%);
   }
-  /* floating glass squares — decorative */
+  /* Subtle dot grid texture */
   #testimonials::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    background-image:
-      linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
-    border-radius: 24px;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.6) 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.6) 70%, transparent 100%);
+  }
+  /* Section heading overrides for this section */
+  #testimonials .section-title {
+    color: #ffffff;
+    text-shadow: 0 2px 20px rgba(79,163,209,0.3);
+  }
+  #testimonials .section-sub {
+    color: rgba(255,255,255,0.65);
+  }
+  #testimonials .section-label {
+    background: rgba(79,163,209,0.15);
+    border: 1px solid rgba(79,163,209,0.3);
+  }
+  #testimonials .section-label span {
+    color: #7dd4f8;
+  }
+  #testimonials .section-label i {
+    color: #7dd4f8;
   }
 
   .testimonials-grid {
@@ -397,12 +418,12 @@
     position: relative; z-index: 1;
   }
   .testimonial-card {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius); padding: 28px 24px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
     transition: all var(--transition); position: relative; overflow: hidden;
   }
   .testimonial-card::before {
@@ -416,13 +437,8 @@
   .stars i {
     color: #f5a623; font-size: 1rem;
     opacity: 0; transform: scale(0) rotate(-30deg);
-    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .stars.animated i:nth-child(1) { opacity:1; transform:scale(1) rotate(0); transition-delay:0s; }
-  .stars.animated i:nth-child(2) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.12s; }
-  .stars.animated i:nth-child(3) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.24s; }
-  .stars.animated i:nth-child(4) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.36s; }
-  .stars.animated i:nth-child(5) { opacity:1; transform:scale(1) rotate(0); transition-delay:0.48s; }
 
   .quote-icon { font-size: 2.5rem; color: rgba(100,220,210,0.4); line-height: 1; margin-bottom: 12px; font-family: Georgia, serif; }
 
@@ -1286,62 +1302,62 @@
   const helpStats = document.querySelector('.help-stats');
   if (helpStats) counterObserver.observe(helpStats);
 
-  // ── TESTIMONIAL ANIMATIONS: Stars + Typewriter ──
-  const activeTypers = new Map();
+  // ── TESTIMONIAL ANIMATIONS: Stars with Sound ──
 
-  function animateStars(card) {
-    const stars = card.querySelector('.stars');
-    if (stars) {
-      stars.classList.remove('animated');
-      void stars.offsetWidth; // force reflow
-      setTimeout(() => stars.classList.add('animated'), 100);
-    }
+  // Show all review text immediately (no typewriter)
+  document.querySelectorAll('.typewriter-text').forEach(el => {
+    el.textContent = el.dataset.text || '';
+  });
+
+  // Star sound using Web Audio API
+  function playStarSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
   }
 
-  function typewriterText(el) {
-    // Stop any existing typer on this element
-    if (activeTypers.has(el)) {
-      clearTimeout(activeTypers.get(el));
-      activeTypers.delete(el);
-    }
-    const text = el.dataset.text || '';
-    el.textContent = '';
-    let i = 0;
-    const speed = 22; // ms per character
+  function animateStarsWithSound(card) {
+    const starEls = card.querySelectorAll('.stars i');
+    if (!starEls.length) return;
 
-    function type() {
-      if (i < text.length) {
-        el.textContent += text[i];
-        i++;
-        const t = setTimeout(type, speed);
-        activeTypers.set(el, t);
-      } else {
-        activeTypers.delete(el);
-      }
-    }
-    type();
+    // Reset stars first
+    const starsDiv = card.querySelector('.stars');
+    starsDiv.classList.remove('animated');
+    void starsDiv.offsetWidth;
+
+    // Animate each star one by one with sound
+    starEls.forEach((star, idx) => {
+      setTimeout(() => {
+        star.style.opacity = '1';
+        star.style.transform = 'scale(1) rotate(0)';
+        playStarSound();
+      }, idx * 150);
+    });
   }
 
-  // Observe each testimonial card individually
+  // Observe each testimonial card
   const testimonialObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const card = entry.target;
       if (entry.isIntersecting) {
-        animateStars(card);
-        const textEl = card.querySelector('.typewriter-text');
-        if (textEl) typewriterText(textEl);
+        animateStarsWithSound(card);
       } else {
-        // Reset when card leaves viewport so it re-animates on return
-        const stars = card.querySelector('.stars');
-        if (stars) stars.classList.remove('animated');
-        const textEl = card.querySelector('.typewriter-text');
-        if (textEl) {
-          if (activeTypers.has(textEl)) {
-            clearTimeout(activeTypers.get(textEl));
-            activeTypers.delete(textEl);
-          }
-          textEl.textContent = '';
-        }
+        // Reset stars when out of view so they re-animate on return
+        card.querySelectorAll('.stars i').forEach(star => {
+          star.style.opacity = '0';
+          star.style.transform = 'scale(0) rotate(-30deg)';
+        });
       }
     });
   }, { threshold: 0.3 });
