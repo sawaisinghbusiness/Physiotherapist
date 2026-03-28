@@ -250,29 +250,39 @@
     display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
   }
   .service-card {
-    background: #fff; border-radius: var(--radius); padding: 32px 28px;
+    border-radius: var(--radius); padding: 32px 28px;
     box-shadow: var(--shadow-soft); transition: all var(--transition); position: relative; overflow: hidden;
     cursor: default;
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    min-height: 260px;
   }
+  /* dark overlay on each card */
   .service-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--dark-blue), var(--light-blue));
-    transform: scaleX(0); transition: transform var(--transition); transform-origin: left;
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(10,25,80,0.78) 0%, rgba(15,40,100,0.70) 60%, rgba(20,60,130,0.60) 100%);
+    transition: background var(--transition);
+    z-index: 0;
   }
   .service-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); }
-  .service-card:hover::before { transform: scaleX(1); }
+  .service-card:hover::before {
+    background: linear-gradient(160deg, rgba(10,25,80,0.88) 0%, rgba(15,40,100,0.82) 60%, rgba(20,60,130,0.74) 100%);
+  }
+
+  /* all content above overlay */
+  .service-icon, .service-card h3, .service-card p { position: relative; z-index: 1; }
 
   .service-icon {
     width: 56px; height: 56px; border-radius: 14px;
-    background: var(--very-light-blue); display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
     margin-bottom: 20px; transition: all var(--transition);
   }
-  .service-icon i { font-size: 1.4rem; color: var(--dark-blue); transition: color var(--transition); }
-  .service-card:hover .service-icon { background: var(--dark-blue); }
-  .service-card:hover .service-icon i { color: #fff; }
+  .service-icon i { font-size: 1.4rem; color: #fff; transition: color var(--transition); }
+  .service-card:hover .service-icon { background: rgba(255,255,255,0.22); }
 
-  .service-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--dark-blue); }
-  .service-card p { font-size: 0.88rem; color: #666; line-height: 1.7; }
+  .service-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
+  .service-card p { font-size: 0.88rem; color: rgba(255,255,255,0.82); line-height: 1.7; }
 
   /* ── CLASSES ── */
   #classes { background: #fff; }
@@ -600,42 +610,42 @@
       <p class="section-sub">From acute injury management to performance optimisation, we provide comprehensive physiotherapy and rehabilitation services tailored to your needs.</p>
     </div>
     <div class="services-grid">
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1519824145371-296894a0daa9?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-hand-holding-medical"></i></div>
         <h3>Physiotherapy</h3>
         <p>Comprehensive assessment and evidence-based treatment for pain, dysfunction, and movement impairments to restore your quality of life.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-person-walking-with-cane"></i></div>
         <h3>Injury Rehabilitation</h3>
         <p>Structured, progressive rehabilitation programs designed to safely guide you from injury back to full function and confidence.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-trophy"></i></div>
         <h3>Sports Physiotherapy</h3>
         <p>Specialised treatment for sports injuries, with a focus on fast, safe return to sport and injury prevention strategies.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-dumbbell"></i></div>
         <h3>Strength &amp; Conditioning</h3>
         <p>Clinician-guided strength programs to build resilience, correct movement patterns, and improve your physical performance safely.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-spa"></i></div>
         <h3>Clinical Pilates</h3>
         <p>Pilates programs prescribed by physiotherapists to address specific injuries, improve core strength, and enhance body awareness.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-spine"></i></div>
         <h3>Back &amp; Neck Pain Treatment</h3>
         <p>Expert management of acute and chronic spinal pain with manual therapy, exercise therapy, and education to achieve lasting results.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1576671081837-49000212a370?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-scalpel-line-dashed"></i></div>
         <h3>Post Surgery Rehabilitation</h3>
         <p>Structured post-operative care and progressive rehabilitation following orthopaedic and other surgical procedures.</p>
       </div>
-      <div class="service-card fade-in">
+      <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80');">
         <div class="service-icon"><i class="fas fa-person-falling-burst"></i></div>
         <h3>Balance &amp; Mobility Training</h3>
         <p>Targeted programs to improve balance, coordination, and joint mobility for greater safety and confidence in everyday life.</p>
