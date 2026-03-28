@@ -89,19 +89,6 @@
   }
   .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,163,209,0.4); }
 
-  /* sound toggle */
-  .sound-toggle {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--very-light-blue); border: 1.5px solid rgba(31,60,136,0.12);
-    border-radius: 8px; padding: 7px 12px; cursor: pointer;
-    font-family: 'Poppins', sans-serif; font-size: 0.76rem; font-weight: 600;
-    color: var(--dark-blue); transition: all var(--transition); white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .sound-toggle:hover { background: #d6eaf8; border-color: var(--light-blue); }
-  .sound-toggle i { font-size: 0.8rem; }
-  .sound-toggle.sound-on { background: var(--dark-blue); color: #fff; border-color: var(--dark-blue); }
-  .sound-toggle.sound-on:hover { background: #162e6e; }
 
   /* hamburger */
   .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; background: none; border: none; }
@@ -134,12 +121,13 @@
   /* ── HERO ── */
   .hero {
     min-height: 100vh; display: flex; align-items: center;
-    background: linear-gradient(135deg, #0f2156 0%, var(--dark-blue) 40%, #2a5298 70%, var(--light-blue) 100%);
+    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1600&q=80') center center / cover no-repeat;
     position: relative; overflow: hidden; padding-top: 72px;
   }
   .hero::before {
     content: ''; position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: linear-gradient(135deg, rgba(10,25,80,0.82) 0%, rgba(15,33,86,0.78) 50%, rgba(20,60,130,0.65) 100%);
+    z-index: 0;
   }
   .hero-blob {
     position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.12;
@@ -156,9 +144,10 @@
   .hero-content { animation: fadeInUp 0.9s ease forwards; }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
     border-radius: 50px; padding: 6px 16px; margin-bottom: 28px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   }
   .hero-badge i { color: var(--light-blue); font-size: 0.75rem; }
   .hero-badge span { color: rgba(255,255,255,0.9); font-size: 0.8rem; font-weight: 500; font-family: 'Poppins', sans-serif; }
@@ -204,9 +193,9 @@
     position: relative;
   }
   .hero-image-card {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 24px; padding: 8px; backdrop-filter: blur(8px);
-    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px; padding: 8px; backdrop-filter: blur(5px);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.4);
   }
   .hero-image-inner {
     border-radius: 18px; overflow: hidden; height: 460px;
@@ -538,7 +527,6 @@
       <li><a href="#team">About</a></li>
       <li><a href="#booking">Contact</a></li>
     </ul>
-    <button class="sound-toggle" id="soundToggle" title="Toggle Sound"><i class="fas fa-volume-xmark"></i><span>Sound Off</span></button>
     <a href="#booking" class="btn-nav"><i class="fas fa-calendar-check"></i> Book Appointment</a>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -1046,9 +1034,9 @@
 </footer>
 
 <script>
-  // ── SOUND ENGINE (Web Audio API — no external files) ──
+  // ── SOUND ENGINE — Auto on first user interaction ──
   let audioCtx = null;
-  let soundEnabled = false;
+  let soundReady = false;
   let ambientOscillators = [];
   let ambientGainNode = null;
 
@@ -1058,15 +1046,14 @@
     return audioCtx;
   }
 
-  // 1. Soft click — gentle sine blip, very low volume
+  // Soft click — gentle sine blip
   function playClick() {
-    if (!soundEnabled) return;
+    if (!soundReady) return;
     try {
       const ctx = getCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.type = 'sine';
       osc.frequency.setValueAtTime(800, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
@@ -1078,29 +1065,27 @@
     } catch(e) {}
   }
 
-  // 2. Soft success — warm 3-note ascending chime
+  // Soft success chime — 3-note ascending
   function playSuccess() {
-    if (!soundEnabled) return;
+    if (!soundReady) return;
     try {
       const ctx = getCtx();
       [[523.25, 0], [659.25, 0.18], [783.99, 0.36]].forEach(([freq, delay]) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.type = 'sine';
         osc.frequency.value = freq;
         const t = ctx.currentTime + delay;
         gain.gain.setValueAtTime(0, t);
         gain.gain.linearRampToValueAtTime(0.06, t + 0.025);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-        osc.start(t);
-        osc.stop(t + 0.52);
+        osc.start(t); osc.stop(t + 0.52);
       });
     } catch(e) {}
   }
 
-  // 3. Ambient — very soft warm drone, fades in slowly
+  // Ambient drone — very soft warm background tone
   function startAmbient() {
     if (ambientGainNode) return;
     try {
@@ -1109,54 +1094,34 @@
       ambientGainNode.gain.setValueAtTime(0, ctx.currentTime);
       ambientGainNode.gain.linearRampToValueAtTime(0.018, ctx.currentTime + 3);
       ambientGainNode.connect(ctx.destination);
-
-      // Two slightly detuned sine waves for warmth
       [174.6, 175.2, 261.6].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
+        osc.type = 'sine'; osc.frequency.value = freq;
         g.gain.value = i === 2 ? 0.2 : 0.4;
-        osc.connect(g);
-        g.connect(ambientGainNode);
+        osc.connect(g); g.connect(ambientGainNode);
         osc.start();
         ambientOscillators.push(osc);
       });
     } catch(e) {}
   }
 
-  function stopAmbient() {
-    if (!ambientGainNode) return;
-    try {
-      const ctx = getCtx();
-      ambientGainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
-      setTimeout(() => {
-        ambientOscillators.forEach(o => { try { o.stop(); } catch(e){} });
-        ambientOscillators = [];
-        ambientGainNode = null;
-      }, 2000);
-    } catch(e) {}
+  // Auto-activate sound on first user interaction
+  function activateSound() {
+    if (soundReady) return;
+    soundReady = true;
+    startAmbient();
+    document.removeEventListener('click', activateSound);
+    document.removeEventListener('touchstart', activateSound);
   }
 
-  // ── SOUND TOGGLE BUTTON ──
-  const soundBtn = document.getElementById('soundToggle');
-  soundBtn.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    soundBtn.classList.toggle('sound-on', soundEnabled);
-    soundBtn.querySelector('i').className = soundEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark';
-    soundBtn.querySelector('span').textContent = soundEnabled ? 'Sound On' : 'Sound Off';
-    if (soundEnabled) {
-      startAmbient();
-      playClick();
-    } else {
-      stopAmbient();
-    }
-  });
+  document.addEventListener('click', activateSound, { once: true });
+  document.addEventListener('touchstart', activateSound, { once: true });
 
-  // Attach click sound to all buttons and nav links
+  // Play click sound on every button/link click
   document.addEventListener('click', (e) => {
     const el = e.target.closest('button, a');
-    if (!el || el.id === 'soundToggle') return;
+    if (!el) return;
     playClick();
   });
 
