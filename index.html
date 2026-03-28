@@ -301,6 +301,17 @@
   .class-card:nth-child(3) .class-card-top { background: linear-gradient(135deg, #1a5e3a, #2d9960); }
   .class-card:nth-child(4) .class-card-top { background: linear-gradient(135deg, #6b3fa0, #9b6bcb); }
   .class-card:nth-child(5) .class-card-top { background: linear-gradient(135deg, #b5450a, #e07030); }
+  .class-card-top {
+    padding: 32px 24px; display: flex; flex-direction: column; gap: 14px;
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    position: relative; overflow: hidden;
+  }
+  .class-card-top::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(10,25,80,0.75) 0%, rgba(15,40,110,0.65) 100%);
+    z-index: 0;
+  }
+  .class-card-top i, .class-card-top h3 { position: relative; z-index: 1; }
   .class-card-top i { font-size: 2.2rem; color: rgba(255,255,255,0.9); }
   .class-card-top h3 { font-size: 1rem; font-weight: 700; color: #fff; }
   .class-card-bottom { background: #fff; padding: 18px 24px; }
@@ -665,7 +676,7 @@
     </div>
     <div class="classes-grid">
       <div class="class-card fade-in">
-        <div class="class-card-top">
+        <div class="class-card-top" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80');">
           <i class="fas fa-dumbbell"></i>
           <h3>Strength Training</h3>
         </div>
@@ -674,7 +685,7 @@
         </div>
       </div>
       <div class="class-card fade-in">
-        <div class="class-card-top">
+        <div class="class-card-top" style="background-image: url('https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80');">
           <i class="fas fa-spa"></i>
           <h3>Pilates Classes</h3>
         </div>
@@ -683,7 +694,7 @@
         </div>
       </div>
       <div class="class-card fade-in">
-        <div class="class-card-top">
+        <div class="class-card-top" style="background-image: url('https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=800&q=80');">
           <i class="fas fa-heart-pulse"></i>
           <h3>Rehabilitation Programs</h3>
         </div>
@@ -692,7 +703,7 @@
         </div>
       </div>
       <div class="class-card fade-in">
-        <div class="class-card-top">
+        <div class="class-card-top" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80');">
           <i class="fas fa-person-walking"></i>
           <h3>Balance Classes</h3>
         </div>
@@ -701,7 +712,7 @@
         </div>
       </div>
       <div class="class-card fade-in">
-        <div class="class-card-top">
+        <div class="class-card-top" style="background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80');">
           <i class="fas fa-book-medical"></i>
           <h3>Education Sessions</h3>
         </div>
@@ -735,19 +746,19 @@
         <p class="section-sub">We don't just treat symptoms — we identify root causes, address movement dysfunctions, and build long-term resilience so you can live and move at your best.</p>
         <div class="help-stats">
           <div class="help-stat-card">
-            <div class="num">2,500+</div>
+            <div class="num counter" data-target="2500" data-suffix="+">0</div>
             <div class="label">Patients Helped</div>
           </div>
           <div class="help-stat-card">
-            <div class="num">98%</div>
+            <div class="num counter" data-target="98" data-suffix="%">0</div>
             <div class="label">Patient Satisfaction</div>
           </div>
           <div class="help-stat-card">
-            <div class="num">12+</div>
+            <div class="num counter" data-target="12" data-suffix="+">0</div>
             <div class="label">Years Experience</div>
           </div>
           <div class="help-stat-card">
-            <div class="num">8</div>
+            <div class="num counter" data-target="8" data-suffix="">0</div>
             <div class="label">Specialist Services</div>
           </div>
         </div>
@@ -1186,6 +1197,45 @@
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // ── COUNTER ANIMATION ──
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1800;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic — fast start, slow finish
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(eased * target);
+
+      // Add comma for thousands (e.g. 2,500)
+      el.textContent = current >= 1000
+        ? current.toLocaleString('en-US') + suffix
+        : current + suffix;
+
+      if (progress < 1) requestAnimationFrame(update);
+      else el.textContent = target >= 1000
+        ? target.toLocaleString('en-US') + suffix
+        : target + suffix;
+    }
+    requestAnimationFrame(update);
+  }
+
+  // Trigger counter when stats section enters viewport
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.counter').forEach(animateCounter);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  const helpStats = document.querySelector('.help-stats');
+  if (helpStats) counterObserver.observe(helpStats);
 
   // ── FORM VALIDATION & SUBMIT ──
   function showError(msg) {
