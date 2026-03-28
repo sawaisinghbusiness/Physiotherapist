@@ -616,7 +616,7 @@
         <p>Comprehensive assessment and evidence-based treatment for pain, dysfunction, and movement impairments to restore your quality of life.</p>
       </div>
       <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=800&q=80');">
-        <div class="service-icon"><i class="fas fa-person-walking-with-cane"></i></div>
+        <div class="service-icon"><i class="fas fa-person-walking"></i></div>
         <h3>Injury Rehabilitation</h3>
         <p>Structured, progressive rehabilitation programs designed to safely guide you from injury back to full function and confidence.</p>
       </div>
@@ -636,17 +636,17 @@
         <p>Pilates programs prescribed by physiotherapists to address specific injuries, improve core strength, and enhance body awareness.</p>
       </div>
       <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80');">
-        <div class="service-icon"><i class="fas fa-spine"></i></div>
+        <div class="service-icon"><i class="fas fa-bone"></i></div>
         <h3>Back &amp; Neck Pain Treatment</h3>
         <p>Expert management of acute and chronic spinal pain with manual therapy, exercise therapy, and education to achieve lasting results.</p>
       </div>
       <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1576671081837-49000212a370?w=800&q=80');">
-        <div class="service-icon"><i class="fas fa-scalpel-line-dashed"></i></div>
+        <div class="service-icon"><i class="fas fa-briefcase-medical"></i></div>
         <h3>Post Surgery Rehabilitation</h3>
         <p>Structured post-operative care and progressive rehabilitation following orthopaedic and other surgical procedures.</p>
       </div>
       <div class="service-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80');">
-        <div class="service-icon"><i class="fas fa-person-falling-burst"></i></div>
+        <div class="service-icon"><i class="fas fa-balance-scale"></i></div>
         <h3>Balance &amp; Mobility Training</h3>
         <p>Targeted programs to improve balance, coordination, and joint mobility for greater safety and confidence in everyday life.</p>
       </div>
@@ -1042,39 +1042,45 @@
 </footer>
 
 <script>
-  // ── SOUND ENGINE — Auto on first user interaction ──
+  // ── HAPTIC VIBRATION ──
+  function vibrate(pattern) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  // ── AUDIO ENGINE (only for big actions) ──
   let audioCtx = null;
-  let soundReady = false;
-
-
   function getCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
 
-  // Soft click — gentle sine blip
-  function playClick() {
-    if (!soundReady) return;
+  // Soft whoosh — nav links & big CTA buttons
+  function playWhoosh() {
     try {
       const ctx = getCtx();
-      const osc = ctx.createOscillator();
+      const bufferSize = ctx.sampleRate * 0.18;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1200, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.18);
+      filter.Q.value = 0.8;
       const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.13);
+      gain.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      source.start(); source.stop(ctx.currentTime + 0.2);
     } catch(e) {}
   }
 
-  // Soft success chime — 3-note ascending
-  function playSuccess() {
-    if (!soundReady) return;
+  // Soft 3-note chime — form submit only
+  function playChime() {
     try {
       const ctx = getCtx();
       [[523.25, 0], [659.25, 0.18], [783.99, 0.36]].forEach(([freq, delay]) => {
@@ -1085,30 +1091,46 @@
         osc.frequency.value = freq;
         const t = ctx.currentTime + delay;
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.06, t + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-        osc.start(t); osc.stop(t + 0.52);
+        gain.gain.linearRampToValueAtTime(0.055, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+        osc.start(t); osc.stop(t + 0.57);
       });
     } catch(e) {}
   }
 
-  // Auto-activate sound on first user interaction
-  function activateSound() {
-    if (soundReady) return;
-    soundReady = true;
-    document.removeEventListener('click', activateSound);
-    document.removeEventListener('touchstart', activateSound);
+  // ── MICRO-ANIMATION: Button press effect ──
+  function triggerPressEffect(el) {
+    el.style.transition = 'transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease';
+    el.style.transform = 'scale(0.95) translateY(2px)';
+    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.18)';
+    el.style.filter = 'brightness(0.88)';
+    setTimeout(() => {
+      el.style.transform = '';
+      el.style.boxShadow = '';
+      el.style.filter = '';
+      setTimeout(() => { el.style.transition = ''; }, 200);
+    }, 130);
   }
 
-  document.addEventListener('click', activateSound, { once: true });
-  document.addEventListener('touchstart', activateSound, { once: true });
-
-  // Play click sound on every button/link click
+  // ── ATTACH INTERACTIONS TO ALL BUTTONS & LINKS ──
   document.addEventListener('click', (e) => {
-    const el = e.target.closest('button, a');
+    const el = e.target.closest('button, a, .btn-primary, .btn-outline, .btn-nav, .btn-submit');
     if (!el) return;
-    playClick();
-  });
+
+    // 1. Press animation on every button/link
+    triggerPressEffect(el);
+
+    // 2. Haptic — short tap for normal, stronger for CTA
+    const isBigAction = el.classList.contains('btn-primary') ||
+                        el.classList.contains('btn-submit') ||
+                        el.classList.contains('btn-nav');
+    vibrate(isBigAction ? [8, 30, 8] : [6]);
+
+    // 3. Whoosh only on nav links & CTA buttons (not every tiny link)
+    if (isBigAction || el.closest('.nav-links, .mobile-menu')) {
+      playWhoosh();
+    }
+  }, { passive: true });
 
   // ── NAVBAR SCROLL ──
   const navbar = document.getElementById('navbar');
@@ -1145,7 +1167,9 @@
   // ── FORM SUBMIT ──
   function handleSubmit(e) {
     e.preventDefault();
-    playSuccess();
+    // Chime + strong haptic on form success
+    playChime();
+    vibrate([10, 40, 10, 40, 20]);
     const form = document.getElementById('bookingForm');
     const success = document.getElementById('successMsg');
     form.style.opacity = '0';
